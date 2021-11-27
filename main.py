@@ -55,3 +55,14 @@ tts.save(output_path_audio + "/title.mp3")
 for i, comment in enumerate(all_comments):
     tts = gTTS(comment)
     tts.save(output_path_audio + "/comment" + str(i) + ".mp3")
+
+
+
+# Creating the Video:
+#   Getting the combined audio length
+total_audio_lenght = 0
+for filename in os.listdir(output_path_audio):
+    audio = MP3(output_path_audio + "/" + filename)
+    total_audio_lenght += audio.info.length
+
+print(total_audio_lenght)
