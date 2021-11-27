@@ -1,7 +1,19 @@
 import praw
+from gtts import gTTS
+import pathlib
+import os
+from mutagen.mp3 import MP3
+
 import my_secrets
 
-num_comments = 20 # Number of comments to load
+num_comments = 15 # Number of comments to load
+
+title = ""
+all_comments = []
+
+
+
+# Fetching the Reddit comments
 
 reddit = praw.Reddit(
     client_id = my_secrets.client_id,
@@ -9,16 +21,37 @@ reddit = praw.Reddit(
     user_agent = my_secrets.user_agent
 )
 
-hot_posts = reddit.subreddit('AskReddit').hot(limit=15)
+hot_posts = reddit.subreddit('AskReddit').hot(limit=10) # Loads 10 posts to filter out NSFW
 
 for post in hot_posts:
-    if not post.over_18:
-        print(post.title)
+    if not post.over_18: # Checks for NSFW
+        title = post.title
+        print(title)
         # post.comments.replace_more()
         for comment in post.comments.list():
-            print(comment.body)
-            if num_comments == 0:
+            all_comments.append(comment.body)
+            print(all_comments[-1])
+            if num_comments == 0: # Limits to 15 comments
                 break
             else: num_comments -= 1
 
         break
+
+
+
+# Converting and saving the fetched data to audio:
+#   Create folders for the outputs:
+current_path = pathlib.Path().absolute()
+output_path_audio = str(current_path) + "/output/" + title + "/audio"
+output_path_video = str(current_path) + "/output/" + title + "/video"
+os.makedirs(output_path_audio)
+os.makedirs(output_path_video)
+
+#   Save the title:
+tts = gTTS(title)
+tts.save(output_path_audio + "/title.mp3")
+
+#   Save the comments:
+for i, comment in enumerate(all_comments):
+    tts = gTTS(comment)
+    tts.save(output_path_audio + "/comment" + str(i) + ".mp3")
