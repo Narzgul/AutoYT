@@ -3,6 +3,7 @@ from gtts import gTTS
 import pathlib
 import os
 from mutagen.mp3 import MP3
+from moviepy.editor import *
 
 import my_secrets
 
@@ -42,14 +43,14 @@ for post in hot_posts:
 # Converting and saving the fetched data to audio:
 #   Create folders for the outputs:
 current_path = pathlib.Path().absolute()
-output_path_audio = str(current_path) + "/output/" + title + "/audio"
+output_path_audio = str(current_path) + "/output/" + title + "/audio/comments"
 output_path_video = str(current_path) + "/output/" + title + "/video"
 os.makedirs(output_path_audio)
 os.makedirs(output_path_video)
 
 #   Save the title:
 tts = gTTS(title)
-tts.save(output_path_audio + "/title.mp3")
+tts.save(output_path_audio + "/../title.mp3")
 
 #   Save the comments:
 for i, comment in enumerate(all_comments):
@@ -59,10 +60,17 @@ for i, comment in enumerate(all_comments):
 
 
 # Creating the Video:
-#   Getting the combined audio length
-total_audio_lenght = 0
-for filename in os.listdir(output_path_audio):
-    audio = MP3(output_path_audio + "/" + filename)
-    total_audio_lenght += audio.info.length
+final_audio = AudioFileClip(output_path_audio + "/../title.mp3")
 
+total_audio_lenght = MP3(output_path_audio + "/../title.mp3").info.length
+for filename in sorted(os.listdir(output_path_audio)):
+    total_filename = output_path_audio + "/" + filename
+    audio = MP3(total_filename)
+    total_audio_lenght += audio.info.length # Getting the combined audio length
+
+    final_audio = concatenate_audioclips([final_audio, AudioFileClip(total_filename)]) # Adding all of the audio clips together
 print(total_audio_lenght)
+
+# Making and Exporting the Video
+my_clip = ImageClip("background.jpg").set_audio(final_audio)
+my_clip.set_duration(int(total_audio_lenght)).write_videofile(output_path_video + "/" + title + ".mp4", fps=24)
