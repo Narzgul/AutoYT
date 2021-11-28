@@ -7,11 +7,10 @@ from moviepy.editor import *
 
 import my_secrets
 
-num_comments = 15 # Number of comments to load
+num_comments = 30 # Number of comments to load
 
 title = ""
 all_comments = []
-
 
 
 # Fetching the Reddit comments
@@ -22,22 +21,22 @@ reddit = praw.Reddit(
     user_agent = my_secrets.user_agent
 )
 
-hot_posts = reddit.subreddit('AskReddit').hot(limit=10) # Loads 10 posts to filter out NSFW
+hot_posts = reddit.subreddit('AskReddit').hot(limit=20) # Loads 20 posts to filter out NSFW and already done
 
 for post in hot_posts:
     if not post.over_18: # Checks for NSFW
         title = post.title
-        print(title)
-        # post.comments.replace_more()
-        for comment in post.comments.list():
-            all_comments.append(comment.body)
-            print(all_comments[-1])
-            if num_comments == 0: # Limits to 15 comments
-                break
-            else: num_comments -= 1
+        if not os.path.isdir("output/" + title):
+            print(title)
+            # post.comments.replace_more()
+            for comment in post.comments.list():
+                all_comments.append(comment.body)
+                print(all_comments[-1])
+                if num_comments == 0: # Limits to 15 comments
+                    break
+                else: num_comments -= 1
 
-        break
-
+            break
 
 
 # Converting and saving the fetched data to audio:
@@ -58,11 +57,10 @@ for i, comment in enumerate(all_comments):
     tts.save(output_path_audio + "/comment" + str(i) + ".mp3")
 
 
-
 # Creating the Video:
 final_audio = AudioFileClip(output_path_audio + "/../title.mp3")
 
-total_audio_lenght = MP3(output_path_audio + "/../title.mp3").info.length
+total_audio_lenght = MP3(output_path_audio + "/../title.mp3").info.length + 5 # 5 Seconds extra
 for filename in sorted(os.listdir(output_path_audio)):
     total_filename = output_path_audio + "/" + filename
     audio = MP3(total_filename)
